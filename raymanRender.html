@@ -11,6 +11,9 @@
 		<script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
 		<script src="https://unpkg.com/mathjs@11.3.3/lib/browser/math.js" crossorigin="anonymous"></script>
 		<link rel="stylesheet" href="resources/main.css">
+		<script type="text/javascript">
+			var trackedPose;
+		</script>
 	</head>
 	<body>
 		<div id="renderer-container" class="renderer-container"></div>
@@ -21,7 +24,7 @@
 		</div>
 		<div id="debug_info" style="font-size: 20px;"></div>
 		<script src="resources/three.js"></script>
-    <script src="resources/ColladaLoader.js"></script>
+		<script src="resources/ColladaLoader.js"></script>
 		<script src="resources/renderer.js"></script>
 		<script src="resources/tracking.js"></script>
 	</body>

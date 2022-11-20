@@ -45,7 +45,8 @@ function averagePoints(p1, p2) {
 function absoluteRotation(src, end) {
   up = [0, 1, 0];
   vec = calcVector(src, end);
-  return vectorRotation(up, vec); // may be backwards
+  //return vectorRotation(up, vec); // may be backwards
+  return vec;
 }
 
 function onResults(results) {
@@ -97,15 +98,16 @@ function onResults(results) {
   let neckPoint = averagePoints(landmarkToPoint(results.poseWorldLandmarks[11]), landmarkToPoint(results.poseWorldLandmarks[12]));
   let body = {
     'pos': [0, 0, 0],
-    'rot': absoluteRotation([0, 0, 0], neckPoint),
+    'rot': absoluteRotation([neckPoint[0], neckPoint[1], -neckPoint[2]], [0, 0, 0]),
   };
-  var trackedPose = {
+  trackedPose = {
     rightHand: rightHand,
     leftHand: leftHand,
     rightFoot: rightFoot,
     leftFoot: leftFoot,
     head: head,
     body: body,
+    feetMidpoint: averagePoints(landmarkToPoint(results.poseWorldLandmarks[27]), landmarkToPoint(results.poseWorldLandmarks[28]))
   }
 
   document.getElementById('debug_info').innerHTML = JSON.stringify(trackedPose);
