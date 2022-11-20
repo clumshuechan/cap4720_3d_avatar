@@ -46,7 +46,7 @@ function absoluteRotation(src, end) {
   up = [0, 1, 0];
   vec = calcVector(src, end);
   //return vectorRotation(up, vec); // may be backwards
-  return vec;
+  return normalizeVector(vec);
 }
 
 function onResults(results) {
@@ -76,7 +76,7 @@ function onResults(results) {
 
   let rightHand = {
       'pos': landmarkToPoint(results.poseWorldLandmarks[16]),
-      'rot': absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[12]), landmarkToPoint(results.poseWorldLandmarks[16])),
+      'rot': absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[14]), landmarkToPoint(results.poseWorldLandmarks[16])),
   };
   let leftHand = {
       'pos': landmarkToPoint(results.poseWorldLandmarks[15]),
@@ -90,15 +90,15 @@ function onResults(results) {
       'pos': landmarkToPoint(results.poseWorldLandmarks[27]),
       'rot': absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[25]), landmarkToPoint(results.poseWorldLandmarks[27])),
   };
-  let headPoint = averagePoints(landmarkToPoint(results.poseWorldLandmarks[1]), landmarkToPoint(results.poseWorldLandmarks[4]));
-  let head = {
-    'pos': headPoint,
-    'rot': absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[0]), headPoint),
-  };
   let neckPoint = averagePoints(landmarkToPoint(results.poseWorldLandmarks[11]), landmarkToPoint(results.poseWorldLandmarks[12]));
   let body = {
     'pos': [0, 0, 0],
-    'rot': absoluteRotation([neckPoint[0], neckPoint[1], -neckPoint[2]], [0, 0, 0]),
+    'rot': absoluteRotation([0, 0, 0], [neckPoint[0], neckPoint[1], -neckPoint[2]]),
+  };
+  let headPoint = averagePoints(landmarkToPoint(results.poseWorldLandmarks[1]), landmarkToPoint(results.poseWorldLandmarks[4]));
+  let head = {
+    'pos': headPoint,
+    'rot': body['rot'] //absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[0]), headPoint),
   };
   trackedPose = {
     rightHand: rightHand,

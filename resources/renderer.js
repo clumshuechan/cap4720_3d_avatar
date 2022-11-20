@@ -16,8 +16,9 @@ var texture = textureLoader.load("resources/models/Rayman.png");
 var material = new THREE.MeshBasicMaterial({map: texture});
 
 var raymanPartMap = [null, 'leftFoot', 'body', 'rightHand', 'leftHand', 'rightFoot', null, 'head'];
+var raymanPartVectors = [null, [0, 1, 0], [0, -1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0], null, [0, -1, 0]];
 
-const TRACKING_SCALE = 7;
+const TRACKING_SCALE = 8;
 
 // load rayman
 var model = loader.load('resources/models/raymanModel.dae', function(collada) {
@@ -54,8 +55,6 @@ var model = loader.load('resources/models/raymanModel.dae', function(collada) {
     raymanMesh.children[i].position.x = (i - raymanMesh.children.length / 2) * 4;
   }
 
-  raymanMesh.children[3].quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), 3.1415 / 2);
-
   // animate
   function animate() {
     requestAnimationFrame( animate );
@@ -67,11 +66,12 @@ var model = loader.load('resources/models/raymanModel.dae', function(collada) {
       for (let i = 0; i < raymanMesh.children.length; i++) {
         if (!raymanPartMap[i]) continue;
         let vec = trackedPose[raymanPartMap[i]].rot;
+        let refVec = raymanPartVectors[i];
         let pos = [...trackedPose[raymanPartMap[i]].pos];
         pos[0] -= refPoint[0];
         pos[1] -= refPoint[1];
         pos[2] -= refPoint[2];
-        raymanMesh.children[i].quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(-vec[0], vec[1], -vec[2]));
+        raymanMesh.children[i].quaternion.setFromUnitVectors(new THREE.Vector3(refVec[0], refVec[1], refVec[2]), new THREE.Vector3(-vec[0], vec[1], -vec[2]));
         raymanMesh.children[i].position.set(pos[0] * TRACKING_SCALE, -pos[1] * TRACKING_SCALE, -pos[2] * TRACKING_SCALE);
       }
     }
