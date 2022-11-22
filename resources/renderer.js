@@ -18,40 +18,47 @@ var textureLoader = new THREE.TextureLoader();
 var texture = textureLoader.load("resources/models/cowboyTexture.png");
 var material = new THREE.MeshBasicMaterial({map: texture});
 
-const TRACKING_SCALE = 8;
+const TRACKING_SCALE = 10;
 
+// maps the model's joint names to tracking data names
 const jointNamesToPoseProperties = {
-  'Torso': 'body',
-  // 'Chest': '',
-  // 'Neck': '',
+  'Chest': 'body',
+  'Neck': 'neck',
   'Head': 'head',
-  'Upper_Arm_L': 'leftHand',
-  // 'Lower_Arm_L': '',
-  // 'Hand_L': '',
-  'Upper_Arm_R': 'rightHand',
-  // 'Lower_Arm_R': '',
-  // 'Hand_R': '',
-  'Upper_Leg_L': 'leftFoot',
-  // 'Lower_Leg_L': '',
-  // 'Foot_L': '',
-  'Upper_Leg_R': 'rightFoot',
-  // 'Lower_Leg_R': '',
-  // 'Foot_R': '',
+  'Upper_Arm_L': 'leftBicep',
+  'Lower_Arm_L': 'leftForearm',
+  'Hand_L': 'leftHand',
+  'Upper_Arm_R': 'rightBicep',
+  'Lower_Arm_R': 'rightForearm',
+  'Hand_R': 'rightHand',
+  'Upper_Leg_L': 'leftThigh',
+  'Lower_Leg_L': 'leftCalf',
+  'Foot_L': 'leftFoot',
+  'Upper_Leg_R': 'rightThigh',
+  'Lower_Leg_R': 'rightCalf',
+  'Foot_R': 'rightFoot'
+};
+
+const jointNamesToReferenceVectors = {
+  'Chest': [0, -1, 0],
+  'Neck': [0, -1, 0],
+  'Head': [0, -1, 0],
+  'Upper_Arm_L': [0, -1, 0],
+  'Lower_Arm_L': null,
+  'Hand_L': null,
+  'Upper_Arm_R': [0, -1, 0],
+  'Lower_Arm_R': null,
+  'Hand_R': null,
+  'Upper_Leg_L': [0, -1, 0],
+  'Lower_Leg_L': null,
+  'Foot_L': null,
+  'Upper_Leg_R': [0, -1, 0],
+  'Lower_Leg_R': null,
+  'Foot_R': null
 };
 
 // load rayman
 var model = loader.load('resources/models/cowboyModel.dae', function(collada) {
-  // // display model info such as model extend, and etc. using console log
-  // console.log('test' + collada.scene.children[1].children);
-  //
-  // // to display attributes found from console log above just follow this format
-  // // overall these console logs are just debug code to show my thinking
-  // console.log(collada.scene['up']);
-  // console.log(collada.scene['children'][0]);					// child mesh level 0
-  // console.log(collada.scene['children'][0].material);			// child mesh level 0's material attribute
-  // console.log(collada.scene['children'][0].geometry);			// child mesh level 0's geometry attribute
-  // // console.log(collada.scene['children'][0].geometry.attributes.uv);
-
   // apply texture
   collada.scene.traverse(function(node) {
   if (node.isMesh) node.material = material;
@@ -68,10 +75,9 @@ var model = loader.load('resources/models/cowboyModel.dae', function(collada) {
   // render the model
   renderer.render(scene, camera);
 
-  const armature = scene.children[0].children[1]; // node
+  const armature = scene.children[0].children[1]; // node, not joint
 
   // get joint's from scene tree
-
   const torso = armature.children[0];
   const chest = torso.children[0];
 
@@ -94,6 +100,7 @@ var model = loader.load('resources/models/cowboyModel.dae', function(collada) {
   const lowerRightLeg = upperRightLeg.children[0];
   const rightFoot = lowerRightLeg.children[0];
 
+  // create array of joints to iterate over while animating
   const joints = [
     torso,
     chest,
@@ -113,53 +120,37 @@ var model = loader.load('resources/models/cowboyModel.dae', function(collada) {
     rightFoot
   ];
 
-  const referenceVectors = [
-    [0, -1, 0],
-    null,
-    null,
-    [0, -1, 0],
-    [0, 1, 0],
-    null,
-    null,
-    [0, 1, 0],
-    null,
-    null,
-    [0, 1, 0],
-    null,
-    null,
-    [0, 1, 0],
-    null,
-    null
-  ];
-
-  // for (let i = 0; i < joints.length; i++) {
-  //   joints[i].geometry.center();
-  //   joints[i].position.x = (i - joints.length / 2) * 4;
-  // }
-
   // animate
   function animate() {
-    requestAnimationFrame( animate );
+    requestAnimationFrame(animate);
 
-    //modelMesh.children[2].rotation.z += 0.01;
     if (trackedPose) {
       let refPoint = trackedPose.feetMidpoint;
 
+      // update all joints based on tracking data
       for (let i = 0; i < joints.length; i++) {
-        if (!jointNamesToPoseProperties[joints[i].name]) continue;
-        const poseLandmark = trackedPose[jointNamesToPoseProperties[joints[i].name]];
+        const jointName = joints[i].name;
+        const poseLandmark = trackedPose[jointNamesToPoseProperties[jointName]];
+        if (poseLandmark == null) continue;
 
-        let refVec = referenceVectors[i];
+        let refVec = jointNamesToReferenceVectors[jointName];
+
+        if (refVec == null && i != 0) {
+          let a = joints[i - 1].position;
+          let b = joints[i].position
+          refVec = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+        }
+
         let vec = poseLandmark.rot;
         let pos = [...poseLandmark.pos];
-
 
         pos[0] -= refPoint[0];
         pos[1] -= refPoint[1];
         pos[2] -= refPoint[2];
 
-        joints[i].quaternion.setFromUnitVectors(new THREE.Vector3(refVec[0], refVec[1], refVec[2]), new THREE.Vector3(-vec[0], vec[1], -vec[2]));
-        joints[i].position.set(pos[0] * TRACKING_SCALE, -pos[1] * TRACKING_SCALE, -pos[2] * TRACKING_SCALE);
+        
+        // joints[i].quaternion.setFromUnitVectors((new THREE.Vector3(refVec[0], refVec[1], refVec[2])).normalize(), (new THREE.Vector3(-vec[0], vec[1], -vec[2])).normalize());
+        // joints[i].position.set(-pos[0] * TRACKING_SCALE, pos[1] * TRACKING_SCALE - 0.64, pos[2] * TRACKING_SCALE + 0.49);
       }
     }
 
