@@ -44,7 +44,7 @@ const jointNamesToPoseProperties = {
 const jointNamesToReferenceVectors = {
   'Chest': [0, -1, 0],
   'Neck': [0, -1, 0],
-  'Head': [0, -1, 0],
+  'Head': null,
   'Upper_Arm_L': [0, -1, 0],
   'Lower_Arm_L': null,
   'Hand_L': null,
@@ -123,7 +123,7 @@ var model = loader.load('resources/models/cowboyModel.dae', function(collada) {
 
   console.log(`Left Forearm Pos: ${joints[5].position.x.toFixed(2)} ${joints[5].position.y.toFixed(2)} ${joints[5].position.z.toFixed(2)}`);
 
-  let activeJointIndices = [4, 7, 10, 13];
+  let activeJointIndices = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 
   // animate
   function animate() {
@@ -148,16 +148,21 @@ var model = loader.load('resources/models/cowboyModel.dae', function(collada) {
         pos[1] -= refPoint[1];
         pos[2] -= refPoint[2];
 
-        if (refVec == null && i != 0) {
-          let a = joints[i - 1].position;
-          let b = joints[i].position;
-          refVec = [b.x - a.x, b.y - a.y, b.z - a.z];
-          // I think that this calculation is wrong
-          // and that is why child nodes aren't animating correctly
+        // if (refVec == null && i != 0) {
+        //   let a = joints[i - 1].position;
+        //   let b = joints[i].position;
+        //   refVec = [b.x - a.x, b.y - a.y, b.z - a.z];
+        //   // I think that this calculation is wrong
+        //   // and that is why child nodes aren't animating correctly
+        // }
+
+        if (refVec != null) {
+          joints[i].quaternion.setFromUnitVectors((new THREE.Vector3(refVec[0], refVec[1], refVec[2])).normalize(), (new THREE.Vector3(-vec[0], vec[1], vec[2])).normalize());
+          joints[i].position.set(pos[0] * HORIZONTAL_TRACKING_SCALE, -pos[1] * VERTICAL_TRACKING_SCALE, pos[2] * DEPTH_TRACKING_SCALE);
+        } else {
+          joints[i].quaternion.setFromAxisAngle(new THREE.Vector3(vec.axis[0], vec.axis[1], vec.axis[2]), -vec.angle);
         }
-        
-        joints[i].quaternion.setFromUnitVectors((new THREE.Vector3(refVec[0], refVec[1], refVec[2])).normalize(), (new THREE.Vector3(-vec[0], vec[1], vec[2])).normalize());
-        joints[i].position.set(pos[0] * HORIZONTAL_TRACKING_SCALE, -pos[1] * VERTICAL_TRACKING_SCALE, pos[2] * DEPTH_TRACKING_SCALE);
+
       }
     }
 

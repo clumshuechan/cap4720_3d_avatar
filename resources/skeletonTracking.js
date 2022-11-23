@@ -79,15 +79,21 @@ function onResults(results) {
   // left arm
   let leftBicep = {
       'pos': landmarkToPoint(results.poseWorldLandmarks[11]),
-      'rot': absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[11]), landmarkToPoint(results.poseWorldLandmarks[13])),
+      'rot': absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[11]), landmarkToPoint(results.poseWorldLandmarks[13]))
   };
+
+  let leftBicepVector = calcVector(landmarkToPoint(results.poseWorldLandmarks[11]), landmarkToPoint(results.poseWorldLandmarks[13]));
+  let leftForearmVector = calcVector(landmarkToPoint(results.poseWorldLandmarks[13]), landmarkToPoint(results.poseWorldLandmarks[15]));
+  let leftHandVector = calcVector(landmarkToPoint(results.poseWorldLandmarks[15]), landmarkToPoint(results.poseWorldLandmarks[19]));
+
   let leftForearm = {
       'pos': landmarkToPoint(results.poseWorldLandmarks[13]),
-      'rot': absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[13]), landmarkToPoint(results.poseWorldLandmarks[15])),
+      'rot': vectorRotation(leftBicepVector, leftForearmVector)
   };
+
   let leftHand = {
       'pos': landmarkToPoint(results.poseWorldLandmarks[15]),
-      'rot': absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[15]), landmarkToPoint(results.poseWorldLandmarks[19])),
+      'rot': vectorRotation(leftForearmVector, leftHandVector)
   };
 
   // right arm
@@ -95,13 +101,19 @@ function onResults(results) {
       'pos': landmarkToPoint(results.poseWorldLandmarks[12]),
       'rot': absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[12]), landmarkToPoint(results.poseWorldLandmarks[14])),
   };
+
+  let rightBicepVector = calcVector(landmarkToPoint(results.poseWorldLandmarks[12]), landmarkToPoint(results.poseWorldLandmarks[14]));
+  let rightForearmVector = calcVector(landmarkToPoint(results.poseWorldLandmarks[14]), landmarkToPoint(results.poseWorldLandmarks[16]));
+  let rightHandVector = calcVector(landmarkToPoint(results.poseWorldLandmarks[16]), landmarkToPoint(results.poseWorldLandmarks[20]));
+
   let rightForearm = {
       'pos': landmarkToPoint(results.poseWorldLandmarks[14]),
-      'rot': absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[14]), landmarkToPoint(results.poseWorldLandmarks[16])),
+      'rot': vectorRotation(rightBicepVector, rightForearmVector)
   };
+
   let rightHand = {
       'pos': landmarkToPoint(results.poseWorldLandmarks[16]),
-      'rot': absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[16]), landmarkToPoint(results.poseWorldLandmarks[20])),
+      'rot': vectorRotation(rightForearmVector, rightHandVector)
   };
 
   // left leg
@@ -109,13 +121,19 @@ function onResults(results) {
       'pos': landmarkToPoint(results.poseWorldLandmarks[23]),
       'rot': absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[23]), landmarkToPoint(results.poseWorldLandmarks[25])),
   };
+
+  let leftThighVector = calcVector(landmarkToPoint(results.poseWorldLandmarks[23]), landmarkToPoint(results.poseWorldLandmarks[25]));
+  let leftCalfVector = calcVector(landmarkToPoint(results.poseWorldLandmarks[25]), landmarkToPoint(results.poseWorldLandmarks[27]));
+  let leftFootVector = calcVector(landmarkToPoint(results.poseWorldLandmarks[27]), landmarkToPoint(results.poseWorldLandmarks[31]));
+
   let leftCalf = {
       'pos': landmarkToPoint(results.poseWorldLandmarks[25]),
-      'rot': absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[25]), landmarkToPoint(results.poseWorldLandmarks[27])),
+      'rot': vectorRotation(leftThighVector, leftCalfVector)
   };
+
   let leftFoot = {
       'pos': landmarkToPoint(results.poseWorldLandmarks[27]),
-      'rot': absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[27]), landmarkToPoint(results.poseWorldLandmarks[31])),
+      'rot': vectorRotation(leftCalfVector, leftFootVector)
   };
 
   // right leg
@@ -123,13 +141,19 @@ function onResults(results) {
       'pos': landmarkToPoint(results.poseWorldLandmarks[24]),
       'rot': absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[24]), landmarkToPoint(results.poseWorldLandmarks[26])),
   };
+
+  let rightThighVector = calcVector(landmarkToPoint(results.poseWorldLandmarks[24]), landmarkToPoint(results.poseWorldLandmarks[26]));
+  let rightCalfVector = calcVector(landmarkToPoint(results.poseWorldLandmarks[26]), landmarkToPoint(results.poseWorldLandmarks[28]));
+  let rightFootVector = calcVector(landmarkToPoint(results.poseWorldLandmarks[28]), landmarkToPoint(results.poseWorldLandmarks[32]));
+
   let rightCalf = {
       'pos': landmarkToPoint(results.poseWorldLandmarks[26]),
-      'rot': absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[26]), landmarkToPoint(results.poseWorldLandmarks[28])),
+      'rot': vectorRotation(rightThighVector, rightCalfVector)
   };
+
   let rightFoot = {
       'pos': landmarkToPoint(results.poseWorldLandmarks[28]),
-      'rot': absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[28]), landmarkToPoint(results.poseWorldLandmarks[32])),
+      'rot': vectorRotation(rightCalfVector, rightFootVector)
   };
 
   // neck
