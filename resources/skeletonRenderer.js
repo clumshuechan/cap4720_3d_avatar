@@ -18,7 +18,9 @@ var textureLoader = new THREE.TextureLoader();
 var texture = textureLoader.load("resources/models/cowboyTexture.png");
 var material = new THREE.MeshBasicMaterial({map: texture});
 
-const TRACKING_SCALE = 10;
+const HORIZONTAL_TRACKING_SCALE = 3;
+const VERTICAL_TRACKING_SCALE = 2;
+const DEPTH_TRACKING_SCALE = 3;
 
 // maps the model's joint names to tracking data names
 const jointNamesToPoseProperties = {
@@ -68,10 +70,9 @@ var model = loader.load('resources/models/cowboyModel.dae', function(collada) {
   scene.add(collada.scene);
 
   // position camera
-  camera.position.z = 35;
-  camera.position.y = 10;
-  camera.rotation.x -= 3.1415 / 8
-
+  camera.position.z = 10;
+  camera.position.y = 5;
+  
   // render the model
   renderer.render(scene, camera);
 
@@ -120,6 +121,10 @@ var model = loader.load('resources/models/cowboyModel.dae', function(collada) {
     rightFoot
   ];
 
+  console.log(`Left Forearm Pos: ${joints[5].position.x.toFixed(2)} ${joints[5].position.y.toFixed(2)} ${joints[5].position.z.toFixed(2)}`);
+
+  let activeJointIndices = [4, 7, 10, 13];
+
   // animate
   function animate() {
     requestAnimationFrame(animate);
@@ -128,18 +133,13 @@ var model = loader.load('resources/models/cowboyModel.dae', function(collada) {
       let refPoint = trackedPose.feetMidpoint;
 
       // update all joints based on tracking data
-      for (let i = 0; i < joints.length; i++) {
+      // for (let i = 0; i < joints.length; i++) {
+      for (let i of activeJointIndices) {
         const jointName = joints[i].name;
         const poseLandmark = trackedPose[jointNamesToPoseProperties[jointName]];
         if (poseLandmark == null) continue;
 
         let refVec = jointNamesToReferenceVectors[jointName];
-
-        if (refVec == null && i != 0) {
-          let a = joints[i - 1].position;
-          let b = joints[i].position
-          refVec = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
-        }
 
         let vec = poseLandmark.rot;
         let pos = [...poseLandmark.pos];
@@ -148,9 +148,16 @@ var model = loader.load('resources/models/cowboyModel.dae', function(collada) {
         pos[1] -= refPoint[1];
         pos[2] -= refPoint[2];
 
+        if (refVec == null && i != 0) {
+          let a = joints[i - 1].position;
+          let b = joints[i].position;
+          refVec = [b.x - a.x, b.y - a.y, b.z - a.z];
+          // I think that this calculation is wrong
+          // and that is why child nodes aren't animating correctly
+        }
         
-        // joints[i].quaternion.setFromUnitVectors((new THREE.Vector3(refVec[0], refVec[1], refVec[2])).normalize(), (new THREE.Vector3(-vec[0], vec[1], -vec[2])).normalize());
-        // joints[i].position.set(-pos[0] * TRACKING_SCALE, pos[1] * TRACKING_SCALE - 0.64, pos[2] * TRACKING_SCALE + 0.49);
+        joints[i].quaternion.setFromUnitVectors((new THREE.Vector3(refVec[0], refVec[1], refVec[2])).normalize(), (new THREE.Vector3(-vec[0], vec[1], vec[2])).normalize());
+        joints[i].position.set(pos[0] * HORIZONTAL_TRACKING_SCALE, -pos[1] * VERTICAL_TRACKING_SCALE, pos[2] * DEPTH_TRACKING_SCALE);
       }
     }
 
