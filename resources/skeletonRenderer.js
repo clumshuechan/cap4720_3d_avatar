@@ -137,9 +137,7 @@ var model = loader.load('resources/models/cowboyModel.dae', function(collada) {
     rightFoot
   ];
 
-  for (let i = 0; i < joints.length; ++i) {
-    joints[i].inverseTransformMatrix = joints[i].worldMatrix.clone().inverse();
-  }
+  console.log(`Left Forearm Pos: ${joints[5].position.x.toFixed(2)} ${joints[5].position.y.toFixed(2)} ${joints[5].position.z.toFixed(2)}`);
 
   let activeJointIndices = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 
@@ -148,34 +146,39 @@ var model = loader.load('resources/models/cowboyModel.dae', function(collada) {
     requestAnimationFrame(animate);
 
     if (trackedPose) {
-      let referencePoint = trackedPose.feetMidpoint;
+      let refPoint = trackedPose.feetMidpoint;
 
       // update all joints based on tracking data
       // for (let i = 0; i < joints.length; i++) {
       for (let i of activeJointIndices) {
         const jointName = joints[i].name;
-
         const poseLandmark = trackedPose[jointNamesToPoseProperties[jointName]];
         if (poseLandmark == null) continue;
 
-        let referenceVec = jointNamesToReferenceVectors[jointName];
+        let refVec = jointNamesToReferenceVectors[jointName];
 
-        let fromRotationVector = poseLandmark.rot.fromVector;
-        let toRotationVector = poseLandmark.rot.toVector;
-        let positionVec = poseLandmark.pos;
+        let vec = poseLandmark.rot;
+        let pos = [...poseLandmark.pos];
 
-        // new_trans_matrix
-        const rotationQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(fromRotationVector[0], fromRotationVector[1], fromRotationVector[2]).normalize(), new THREE.Vector3(-toRotationVector[0], toRotationVector[1], -toRotationVector[2]).normalize());
-        const trackingTransformMatrix = new THREE.Matrix4().makeTranslation(positionVec[0], positionVec[1], positionVec[2]).makeRotationFromQuaternion(rotationQuaternion);
-        joints[i].matrixWorld.set(trackingTransformMatrix.multiply(joints[i].inverseTransformMatrix));
+        pos[0] -= refPoint[0];
+        pos[1] -= refPoint[1];
+        pos[2] -= refPoint[2];
 
-        // if (referenceVec != null) {
-        //   joints[i].position.set(positionVec[0] * HORIZONTAL_TRACKING_SCALE, -positionVec[1] * VERTICAL_TRACKING_SCALE, positionVec[2] * DEPTH_TRACKING_SCALE);
+        // if (refVec == null && i != 0) {
+        //   let a = joints[i - 1].position;
+        //   let b = joints[i].position;
+        //   refVec = [b.x - a.x, b.y - a.y, b.z - a.z];
+        //   // I think that this calculation is wrong
+        //   // and that is why child nodes aren't animating correctly
         // }
 
-        // joints[i].position.set(positionVec[0] * HORIZONTAL_TRACKING_SCALE, -positionVec[1] * VERTICAL_TRACKING_SCALE, positionVec[2] * DEPTH_TRACKING_SCALE);
-        // joints[i].quaternion.setFromAxisAngle(new THREE.Vector3(rotationAxis[0], rotationAxis[1], rotationAxis[2]), -rotationAngle);
-        // joints[i].quaternion.setFromUnitVectors(new THREE.Vector3(fromRotationVector[0], fromRotationVector[1], fromRotationVector[2]).normalize(), new THREE.Vector3(-toRotationVector[0], toRotationVector[1], -toRotationVector[2]).normalize());
+        if (refVec != null) {
+          joints[i].quaternion.setFromUnitVectors((new THREE.Vector3(refVec[0], refVec[1], refVec[2])).normalize(), (new THREE.Vector3(-vec[0], vec[1], vec[2])).normalize());
+          joints[i].position.set(pos[0] * HORIZONTAL_TRACKING_SCALE, -pos[1] * VERTICAL_TRACKING_SCALE, pos[2] * DEPTH_TRACKING_SCALE);
+        } else {
+          joints[i].quaternion.setFromAxisAngle(new THREE.Vector3(vec.axis[0], vec.axis[1], vec.axis[2]).transformDirection(new THREE.Matrix4().makeRotationX(Math.PI / 2)), vec.angle);
+        }
+
       }
     }
 

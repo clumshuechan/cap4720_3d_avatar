@@ -49,30 +49,6 @@ function absoluteRotation(src, end) {
   return normalizeVector(vec);
 }
 
-function getAverageForPoseParts(poseParts) {
-  let avgPosePart = {
-    pos: [0, 0, 0],
-    rot: {
-      fromVector: poseParts[0].rot.fromVector,
-      toVector: [0, 0, 0]
-    }
-  };
-
-  for (let i = 0; i < poseParts.length; ++i) {
-    avgPosePart.pos[0] += poseParts[i].pos[0] / poseParts.length;
-    avgPosePart.pos[1] += poseParts[i].pos[1] / poseParts.length;
-    avgPosePart.pos[2] += poseParts[i].pos[2] / poseParts.length;
-
-    avgPosePart.rot.toVector[0] += poseParts[i].rot.toVector[0] / poseParts.length;
-    avgPosePart.rot.toVector[1] += poseParts[i].rot.toVector[1] / poseParts.length;
-    avgPosePart.rot.toVector[2] += poseParts[i].rot.toVector[2] / poseParts.length;
-  }
-
-  return avgPosePart;
-}
-
-let trackedPoseQueue = [];
-
 function onResults(results) {
   if (!results.poseLandmarks) {
     grid.updateLandmarks([]);
@@ -101,105 +77,103 @@ function onResults(results) {
   // calculate joints
 
   // left arm
+  let leftBicep = {
+      'pos': landmarkToPoint(results.poseWorldLandmarks[11]),
+      'rot': absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[11]), landmarkToPoint(results.poseWorldLandmarks[13]))
+  };
+
   let leftBicepVector = calcVector(landmarkToPoint(results.poseWorldLandmarks[11]), landmarkToPoint(results.poseWorldLandmarks[13]));
   let leftForearmVector = calcVector(landmarkToPoint(results.poseWorldLandmarks[13]), landmarkToPoint(results.poseWorldLandmarks[15]));
   let leftHandVector = calcVector(landmarkToPoint(results.poseWorldLandmarks[15]), landmarkToPoint(results.poseWorldLandmarks[19]));
 
-  let leftBicep = {
-      pos: landmarkToPoint(results.poseWorldLandmarks[11]),
-      rot: { fromVector: [0, 1, 0], toVector: leftBicepVector }
-  };
-
   let leftForearm = {
-      pos: landmarkToPoint(results.poseWorldLandmarks[13]),
-      rot: { fromVector: leftBicepVector, toVector: leftForearmVector }
+      'pos': landmarkToPoint(results.poseWorldLandmarks[13]),
+      'rot': vectorRotation(leftBicepVector, leftForearmVector)
   };
 
   let leftHand = {
-      pos: landmarkToPoint(results.poseWorldLandmarks[15]),
-      rot: { fromVector: leftForearmVector, toVector: leftHandVector }
+      'pos': landmarkToPoint(results.poseWorldLandmarks[15]),
+      'rot': vectorRotation(leftForearmVector, leftHandVector)
   };
 
   // right arm
+  let rightBicep = {
+      'pos': landmarkToPoint(results.poseWorldLandmarks[12]),
+      'rot': absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[12]), landmarkToPoint(results.poseWorldLandmarks[14])),
+  };
+
   let rightBicepVector = calcVector(landmarkToPoint(results.poseWorldLandmarks[12]), landmarkToPoint(results.poseWorldLandmarks[14]));
   let rightForearmVector = calcVector(landmarkToPoint(results.poseWorldLandmarks[14]), landmarkToPoint(results.poseWorldLandmarks[16]));
   let rightHandVector = calcVector(landmarkToPoint(results.poseWorldLandmarks[16]), landmarkToPoint(results.poseWorldLandmarks[20]));
 
-  let rightBicep = {
-      pos: landmarkToPoint(results.poseWorldLandmarks[12]),
-      rot: { fromVector: [0, 1, 0], toVector: rightBicepVector }
-  };
-
   let rightForearm = {
-      pos: landmarkToPoint(results.poseWorldLandmarks[14]),
-      rot: { fromVector: rightBicepVector, toVector: rightForearmVector }
+      'pos': landmarkToPoint(results.poseWorldLandmarks[14]),
+      'rot': vectorRotation(rightBicepVector, rightForearmVector)
   };
 
   let rightHand = {
-      pos: landmarkToPoint(results.poseWorldLandmarks[16]),
-      rot: { fromVector: rightForearmVector, toVector: rightHandVector }
+      'pos': landmarkToPoint(results.poseWorldLandmarks[16]),
+      'rot': vectorRotation(rightForearmVector, rightHandVector)
   };
 
   // left leg
+  let leftThigh = {
+      'pos': landmarkToPoint(results.poseWorldLandmarks[23]),
+      'rot': absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[23]), landmarkToPoint(results.poseWorldLandmarks[25])),
+  };
+
   let leftThighVector = calcVector(landmarkToPoint(results.poseWorldLandmarks[23]), landmarkToPoint(results.poseWorldLandmarks[25]));
   let leftCalfVector = calcVector(landmarkToPoint(results.poseWorldLandmarks[25]), landmarkToPoint(results.poseWorldLandmarks[27]));
   let leftFootVector = calcVector(landmarkToPoint(results.poseWorldLandmarks[27]), landmarkToPoint(results.poseWorldLandmarks[31]));
 
-  let leftThigh = {
-      pos: landmarkToPoint(results.poseWorldLandmarks[23]),
-      rot: { fromVector: [0, 1, 0], toVector: leftThighVector }
-  };
-
   let leftCalf = {
-      pos: landmarkToPoint(results.poseWorldLandmarks[25]),
-      rot: { fromVector: leftThighVector, toVector: leftCalfVector }
+      'pos': landmarkToPoint(results.poseWorldLandmarks[25]),
+      'rot': vectorRotation(leftThighVector, leftCalfVector)
   };
 
   let leftFoot = {
-      pos: landmarkToPoint(results.poseWorldLandmarks[27]),
-      rot: { fromVector: leftCalfVector, toVector: leftFootVector }
+      'pos': landmarkToPoint(results.poseWorldLandmarks[27]),
+      'rot': vectorRotation(leftCalfVector, leftFootVector)
   };
 
   // right leg
+  let rightThigh = {
+      'pos': landmarkToPoint(results.poseWorldLandmarks[24]),
+      'rot': absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[24]), landmarkToPoint(results.poseWorldLandmarks[26])),
+  };
+
   let rightThighVector = calcVector(landmarkToPoint(results.poseWorldLandmarks[24]), landmarkToPoint(results.poseWorldLandmarks[26]));
   let rightCalfVector = calcVector(landmarkToPoint(results.poseWorldLandmarks[26]), landmarkToPoint(results.poseWorldLandmarks[28]));
   let rightFootVector = calcVector(landmarkToPoint(results.poseWorldLandmarks[28]), landmarkToPoint(results.poseWorldLandmarks[32]));
 
-  let rightThigh = {
-      pos: landmarkToPoint(results.poseWorldLandmarks[24]),
-      rot: { fromVector: [0, 1, 0], toVector: rightThighVector }
-  };
-
   let rightCalf = {
-      pos: landmarkToPoint(results.poseWorldLandmarks[26]),
-      rot: { fromVector: rightThighVector, toVector: rightCalfVector }
+      'pos': landmarkToPoint(results.poseWorldLandmarks[26]),
+      'rot': vectorRotation(rightThighVector, rightCalfVector)
   };
 
   let rightFoot = {
-      pos: landmarkToPoint(results.poseWorldLandmarks[28]),
-      rot: { fromVector: rightCalfVector, toVector: rightFootVector }
+      'pos': landmarkToPoint(results.poseWorldLandmarks[28]),
+      'rot': vectorRotation(rightCalfVector, rightFootVector)
   };
 
   // neck
   let neckPoint = averagePoints(landmarkToPoint(results.poseWorldLandmarks[11]), landmarkToPoint(results.poseWorldLandmarks[12]));
-  let neckVector = calcVector(neckPoint, landmarkToPoint(results.poseWorldLandmarks[0]));
   let neck = {
-      pos: neckPoint,
-      rot: { fromVector: [0, 1, 0], toVector: neckVector }
+      'pos': neckPoint,
+      'rot': absoluteRotation(neckPoint, landmarkToPoint(results.poseWorldLandmarks[0]))
   };
 
   // chest
-  let bodyVector = calcVector([0, 0, 0], [neckPoint[0], neckPoint[1], -neckPoint[2]]);
   let body = {
-    pos: [0, 0, 0],
-    rot: { fromVector: [0, 1, 0], toVector: bodyVector }
+    'pos': [0, 0, 0],
+    'rot': absoluteRotation([0, 0, 0], [neckPoint[0], neckPoint[1], -neckPoint[2]]),
   };
 
   // reference point
   let feetMidpoint = averagePoints(landmarkToPoint(results.poseWorldLandmarks[27]), landmarkToPoint(results.poseWorldLandmarks[28]));
 
   // package joint data to be sent to renderer
-  let singleTrackedPose = {
+  trackedPose = {
     leftBicep: leftBicep,
     leftForearm: leftForearm,
     leftHand: leftHand,
@@ -213,31 +187,8 @@ function onResults(results) {
     rightCalf: rightCalf,
     rightFoot: rightFoot,
     neck: neck,
-    body: body
-  };
-
-  if (trackedPoseQueue.length == 5) {
-    trackedPoseQueue.shift();
-  }
-
-  trackedPoseQueue.push(singleTrackedPose);
-
-  if (trackedPoseQueue.length == 5) {
-    let denoisedTrackedPose = {
-      feetMidpoint: feetMidpoint
-    };
-
-    for (const part in singleTrackedPose) {
-      let poseParts = []
-      for (let i = 0; i < trackedPoseQueue.length; ++i) {
-        poseParts.push(trackedPoseQueue[i][part]);
-      }
-
-      let avgPosePart = getAverageForPoseParts(poseParts);
-      denoisedTrackedPose[part] = avgPosePart;
-    }
-
-    trackedPose = denoisedTrackedPose;
+    body: body,
+    feetMidpoint: feetMidpoint
   }
 
   // document.getElementById('debug_info').innerHTML = `Left Bicep Rotation: ${leftBicep.rot[0].toFixed(2)} ${leftBicep.rot[1].toFixed(2)} ${leftBicep.rot[2].toFixed(2)}`;
