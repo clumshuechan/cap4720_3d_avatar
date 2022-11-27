@@ -1,3 +1,5 @@
+console.log("Debug Test")
+
 // initlize scene and camera
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -12,6 +14,20 @@ var loader = new THREE.ColladaLoader();
 
 // load model texture
 var textureLoader = new THREE.TextureLoader();
+
+// Loading Skybox images
+// These textures are licensed under a Creative Commons Attribution 3.0 Unported License.
+// That can be found here: https://www.humus.name/index.php?page=Textures
+const cubeLoader = new THREE.CubeTextureLoader();
+const cubeTexture = cubeLoader.load([
+  'resources/skybox/DaylightBox_Front.bmp',
+  'resources/skybox/DaylightBox_Back.bmp',
+  'resources/skybox/DaylightBox_Top.bmp',
+  'resources/skybox/DaylightBox_Back.bmp',
+  'resources/skybox/DaylightBox_Right.bmp',
+  'resources/skybox/DaylightBox_Left.bmp',
+]);
+scene.background = cubeTexture;
 
 // this 3D model is free to use under the Unlicense license
 // which can be found here: https://github.com/TheThinMatrix/OpenGL-Animation/blob/master/LICENSE
