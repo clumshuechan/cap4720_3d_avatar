@@ -15,6 +15,11 @@ var loader = new THREE.ColladaLoader();
 // load model texture
 var textureLoader = new THREE.TextureLoader();
 
+// set up directional light (needs fixing)
+var light = new THREE.SpotLight(0xffffff);
+light.position.set(0, 400, 0);
+//scene.add(light);
+
 // Loading Skybox images
 // These textures are licensed under a Creative Commons Attribution 3.0 Unported License.
 // That can be found here: https://www.humus.name/index.php?page=Textures
