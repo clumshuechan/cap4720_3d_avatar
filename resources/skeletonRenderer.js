@@ -20,12 +20,12 @@ var textureLoader = new THREE.TextureLoader();
 // That can be found here: https://www.humus.name/index.php?page=Textures
 const cubeLoader = new THREE.CubeTextureLoader();
 const cubeTexture = cubeLoader.load([
-  'resources/skybox/DaylightBox_Front.bmp',
-  'resources/skybox/DaylightBox_Back.bmp',
-  'resources/skybox/DaylightBox_Top.bmp',
-  'resources/skybox/DaylightBox_Back.bmp',
   'resources/skybox/DaylightBox_Right.bmp',
   'resources/skybox/DaylightBox_Left.bmp',
+  'resources/skybox/DaylightBox_Top.bmp',
+  'resources/skybox/DaylightBox_Bottom.bmp',
+  'resources/skybox/DaylightBox_Front.bmp',
+  'resources/skybox/DaylightBox_Back.bmp',
 ]);
 scene.background = cubeTexture;
 
@@ -75,6 +75,62 @@ const jointNamesToReferenceVectors = {
   'Foot_R': null
 };
 
+// camera orientation constants
+const cameraDistanceToCenter = 10;
+const cameraYOffset = 5;
+const cameraRotationTheta = 0.1; // radians
+
+// variables for camera rotation
+let cameraVerticalAngle = 0;
+let cameraHorizontalAngle = Math.PI / 2;
+let panningDirection = '';
+
+// set up arrow key event handlers
+document.body.onkeydown = function(event) {
+  if (event.keyCode == '38') {
+    panningDirection = 'up';
+  } else if (event.keyCode == '40') {
+    panningDirection = 'down';
+  } else if (event.keyCode == '37') {
+    panningDirection = 'left';
+  } else if (event.keyCode == '39') {
+    panningDirection = 'right';
+  }
+};
+
+document.body.onkeyup = function(event) {
+  panningDirection = '';
+};
+
+function setInitialCameraOrientation() {
+  camera.position.set(0, cameraYOffset, cameraDistanceToCenter);
+  camera.lookAt(0, cameraYOffset, 0);
+}
+
+// animates camera rotation and position when the 
+// user presses the arrow keys
+function updateCameraOrientation() {
+  if (panningDirection == '') {
+    return;
+  }
+
+  if (panningDirection == 'up') {
+    cameraVerticalAngle = Math.min(Math.PI / 2, cameraVerticalAngle + cameraRotationTheta);
+  } else if (panningDirection == 'down') {
+    cameraVerticalAngle = Math.max(-(Math.PI / 2), cameraVerticalAngle - cameraRotationTheta);
+  } else if (panningDirection == 'left') {
+    cameraHorizontalAngle = Math.min(1.5 * Math.PI, cameraHorizontalAngle + cameraRotationTheta);
+  } else if (panningDirection == 'right') {
+    cameraHorizontalAngle = Math.max(-(Math.PI / 2), cameraHorizontalAngle - cameraRotationTheta);
+  }
+
+  camera.position.x = cameraDistanceToCenter * Math.cos(cameraHorizontalAngle) * Math.cos(cameraVerticalAngle);
+  camera.position.z = cameraDistanceToCenter * Math.sin(cameraHorizontalAngle) * Math.cos(cameraVerticalAngle);
+  camera.position.y = cameraDistanceToCenter * Math.sin(cameraVerticalAngle) + cameraYOffset;
+
+  camera.lookAt(0, cameraYOffset, 0);
+}
+
 // load rayman
 var model = loader.load('resources/models/cowboyModel.dae', function(collada) {
   // apply texture
@@ -85,9 +141,8 @@ var model = loader.load('resources/models/cowboyModel.dae', function(collada) {
   // add model to scene
   scene.add(collada.scene);
 
-  // position camera
-  camera.position.z = 10;
-  camera.position.y = 5;
+  // position and orient camera
+  setInitialCameraOrientation();
   
   // render the model
   renderer.render(scene, camera);
@@ -137,13 +192,15 @@ var model = loader.load('resources/models/cowboyModel.dae', function(collada) {
     rightFoot
   ];
 
-  console.log(`Left Forearm Pos: ${joints[5].position.x.toFixed(2)} ${joints[5].position.y.toFixed(2)} ${joints[5].position.z.toFixed(2)}`);
-
   let activeJointIndices = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 
   // animate
   function animate() {
     requestAnimationFrame(animate);
+
+    // animate camera orientation as user
+    // presses arrow keys
+    updateCameraOrientation();
 
     if (trackedPose) {
       let refPoint = trackedPose.feetMidpoint;
