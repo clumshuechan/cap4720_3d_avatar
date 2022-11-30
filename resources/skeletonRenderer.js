@@ -1,5 +1,3 @@
-console.log("Debug Test")
-
 // initlize scene and camera
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -14,11 +12,6 @@ var loader = new THREE.ColladaLoader();
 
 // load model texture
 var textureLoader = new THREE.TextureLoader();
-
-// set up directional light (needs fixing)
-var light = new THREE.SpotLight(0xffffff);
-light.position.set(0, 400, 0);
-//scene.add(light);
 
 // Loading Skybox images
 // These textures are licensed under a Creative Commons Attribution 3.0 Unported License.
@@ -64,7 +57,7 @@ const jointNamesToPoseProperties = {
 
 const jointNamesToReferenceVectors = {
   'Chest': [0, -1, 0],
-  'Neck': [0, -1, 0],
+  'Neck': null,
   'Head': null,
   'Upper_Arm_L': [0, -1, 0],
   'Lower_Arm_L': null,
@@ -152,13 +145,13 @@ var model = loader.load('resources/models/cowboyModel.dae', function(collada) {
   // render the model
   renderer.render(scene, camera);
 
-  const armature = scene.children[0].children[1]; // node, not joint
+  const armature = scene.children[2].children[1]; // node, not joint
 
   // get joint's from scene tree
   const torso = armature.children[0];
   const chest = torso.children[0];
 
-  const neck = chest.children[0];
+  const neck = chest.children[0];  
   const head = neck.children[0];
 
   const upperLeftArm = chest.children[1];
@@ -226,21 +219,14 @@ var model = loader.load('resources/models/cowboyModel.dae', function(collada) {
         pos[1] -= refPoint[1];
         pos[2] -= refPoint[2];
 
-        // if (refVec == null && i != 0) {
-        //   let a = joints[i - 1].position;
-        //   let b = joints[i].position;
-        //   refVec = [b.x - a.x, b.y - a.y, b.z - a.z];
-        //   // I think that this calculation is wrong
-        //   // and that is why child nodes aren't animating correctly
-        // }
-
         if (refVec != null) {
           joints[i].quaternion.setFromUnitVectors((new THREE.Vector3(refVec[0], refVec[1], refVec[2])).normalize(), (new THREE.Vector3(-vec[0], vec[1], vec[2])).normalize());
           joints[i].position.set(pos[0] * HORIZONTAL_TRACKING_SCALE, -pos[1] * VERTICAL_TRACKING_SCALE, pos[2] * DEPTH_TRACKING_SCALE);
         } else {
-          joints[i].quaternion.setFromAxisAngle(new THREE.Vector3(vec.axis[0], vec.axis[1], vec.axis[2]).transformDirection(new THREE.Matrix4().makeRotationX(Math.PI / 2)), vec.angle);
+          let rotationAxis = new THREE.Vector3(vec.axis[0], vec.axis[1], vec.axis[2]);
+          rotationAxis.transformDirection(new THREE.Matrix4().makeRotationX(Math.PI / 2));
+          joints[i].quaternion.setFromAxisAngle(rotationAxis, vec.angle);
         }
-
       }
     }
 

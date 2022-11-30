@@ -82,6 +82,7 @@ function onResults(results) {
       'pos': landmarkToPoint(results.poseWorldLandmarks[15]),
       'rot': absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[13]), landmarkToPoint(results.poseWorldLandmarks[15])),
   };
+
   let rightFoot = {
       'pos': landmarkToPoint(results.poseWorldLandmarks[28]),
       'rot': absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[26]), landmarkToPoint(results.poseWorldLandmarks[28])),
@@ -90,16 +91,35 @@ function onResults(results) {
       'pos': landmarkToPoint(results.poseWorldLandmarks[27]),
       'rot': absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[25]), landmarkToPoint(results.poseWorldLandmarks[27])),
   };
+
   let neckPoint = averagePoints(landmarkToPoint(results.poseWorldLandmarks[11]), landmarkToPoint(results.poseWorldLandmarks[12]));
   let body = {
     'pos': [0, 0, 0],
     'rot': absoluteRotation([0, 0, 0], [neckPoint[0], neckPoint[1], -neckPoint[2]]),
   };
+
   let headPoint = averagePoints(landmarkToPoint(results.poseWorldLandmarks[1]), landmarkToPoint(results.poseWorldLandmarks[4]));
   let head = {
     'pos': headPoint,
-    'rot': body['rot'] //absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[0]), headPoint),
+    'rot': body['rot']
   };
+
+  let eyePoint = averagePoints(landmarkToPoint(results.poseWorldLandmarks[2]), landmarkToPoint(results.poseWorldLandmarks[5]));
+  eyePoint[1] -= 0.15; // moves Raymond's eyes up so that they don't overlap with his nose 
+
+  let eyes = {
+    'pos': eyePoint,
+    'rot': body['rot']
+  };
+
+  let hairPoint = averagePoints(landmarkToPoint(results.poseWorldLandmarks[2]), landmarkToPoint(results.poseWorldLandmarks[5]));
+  hairPoint[1] -= 0.25; // moves Raymond's hair up so that it doesn't overlap with his eyes 
+
+  let hair = {
+    'pos': hairPoint,
+    'rot': body['rot']
+  };
+
   trackedPose = {
     rightHand: rightHand,
     leftHand: leftHand,
@@ -107,10 +127,10 @@ function onResults(results) {
     leftFoot: leftFoot,
     head: head,
     body: body,
+    eyes: eyes,
+    hair: hair,
     feetMidpoint: averagePoints(landmarkToPoint(results.poseWorldLandmarks[27]), landmarkToPoint(results.poseWorldLandmarks[28]))
   }
-
-  document.getElementById('debug_info').innerHTML = JSON.stringify(trackedPose);
 
   drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS,
                  {color: '#00FF00', lineWidth: 4});

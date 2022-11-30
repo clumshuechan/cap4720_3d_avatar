@@ -156,11 +156,14 @@ function onResults(results) {
       'rot': vectorRotation(rightCalfVector, rightFootVector)
   };
 
-  // neck
   let neckPoint = averagePoints(landmarkToPoint(results.poseWorldLandmarks[11]), landmarkToPoint(results.poseWorldLandmarks[12]));
+  let chestVector = calcVector([0, 0, 0], neckPoint);
+  let neckVector = calcVector(neckPoint, landmarkToPoint(results.poseWorldLandmarks[0]));
+
+  // neck
   let neck = {
       'pos': neckPoint,
-      'rot': absoluteRotation(neckPoint, landmarkToPoint(results.poseWorldLandmarks[0]))
+      'rot': vectorRotation(chestVector, neckVector)
   };
 
   // chest
