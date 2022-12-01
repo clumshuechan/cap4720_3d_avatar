@@ -27,7 +27,7 @@ scene.background = cubeTexture;
 // set up basic point light
 const light = new THREE.PointLight(0xff0000, 1, 100);
 light.position.set(50, 50, 50);
-scene.add(light);
+//scene.add(light);
 
 // load rayman texture
 var textureLoader = new THREE.TextureLoader();
@@ -104,6 +104,9 @@ var model = loader.load('resources/models/raymanModel.dae', function(collada) {
 
   // add model to scene
   scene.add(collada.scene);
+
+  // add light to scene
+  scene.add(light);
 
   // position and orient camera
   setInitialCameraOrientation();
