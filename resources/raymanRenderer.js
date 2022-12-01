@@ -24,6 +24,11 @@ const cubeTexture = cubeLoader.load([
 ]);
 scene.background = cubeTexture;
 
+// set up basic point light
+const light = new THREE.PointLight(0xff0000, 1, 100);
+light.position.set(50, 50, 50);
+scene.add(light);
+
 // load rayman texture
 var textureLoader = new THREE.TextureLoader();
 var texture = textureLoader.load("resources/models/Rayman.png");
