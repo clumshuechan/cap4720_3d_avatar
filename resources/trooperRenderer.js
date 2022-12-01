@@ -93,6 +93,10 @@ function updateCameraOrientation() {
 
 // load stormtrooper into the world, along with animation based on tracking data
 var model = loader.load('resources/models/Stormtrooper_D.dae', function(collada) {
+    // debug collada file
+    console.log(collada.scene);
+    console.log(collada.scene.children[0]);
+
     // apply texture
     collada.scene.traverse(function(node) {
     if (node.isMesh) node.material = material;
