@@ -30,8 +30,8 @@ var texture = textureLoader.load("resources/models/Stormtrooper_D.jpg");
 var material = new THREE.MeshBasicMaterial({map: texture});
 
 // set up reference vectors for each part of the stormtrooper body
-var raymanPartMap = ['hair', 'leftFoot', 'body', 'rightHand', 'leftHand', 'rightFoot', 'eyes', 'head'];
-var raymanPartVectors = [[0, -1, 0], [0, 1, 0], [0, -1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0], [0, -1, 0], [0, -1, 0]];
+var trooperParttMap = ['hair', 'leftFoot', 'body', 'rightHand', 'leftHand', 'rightFoot', 'eyes', 'head'];
+var trooperPartVectors = [[0, -1, 0], [0, 1, 0], [0, -1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0], [0, -1, 0], [0, -1, 0]];
 
 const TRACKING_SCALE = 8;
 
