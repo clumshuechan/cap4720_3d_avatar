@@ -45,7 +45,6 @@ function averagePoints(p1, p2) {
 function absoluteRotation(src, end) {
   up = [0, 1, 0];
   vec = calcVector(src, end);
-  //return vectorRotation(up, vec); // may be backwards
   return normalizeVector(vec);
 }
 
@@ -57,10 +56,6 @@ function onResults(results) {
 
   canvasCtx.save();
   canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-  /*
-  canvasCtx.drawImage(results.segmentationMask, 0, 0,
-                      canvasElement.width, canvasElement.height);
-  */
 
   // Only overwrite existing pixels.
   canvasCtx.globalCompositeOperation = 'source-in';
@@ -75,7 +70,6 @@ function onResults(results) {
   canvasCtx.globalCompositeOperation = 'source-over';
 
   // calculate joints
-
   // left arm
   let leftBicep = {
       'pos': landmarkToPoint(results.poseWorldLandmarks[11]),
@@ -193,8 +187,6 @@ function onResults(results) {
     body: body,
     feetMidpoint: feetMidpoint
   }
-
-  // document.getElementById('debug_info').innerHTML = `Left Bicep Rotation: ${leftBicep.rot[0].toFixed(2)} ${leftBicep.rot[1].toFixed(2)} ${leftBicep.rot[2].toFixed(2)}`;
 
   drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS,
                  {color: '#00FF00', lineWidth: 4});

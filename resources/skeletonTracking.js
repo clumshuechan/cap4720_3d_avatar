@@ -194,8 +194,6 @@ function onResults(results) {
     feetMidpoint: feetMidpoint
   }
 
-  // document.getElementById('debug_info').innerHTML = `Left Bicep Rotation: ${leftBicep.rot[0].toFixed(2)} ${leftBicep.rot[1].toFixed(2)} ${leftBicep.rot[2].toFixed(2)}`;
-
   drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS,
                  {color: '#00FF00', lineWidth: 4});
   drawLandmarks(canvasCtx, results.poseLandmarks,
