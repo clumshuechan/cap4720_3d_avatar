@@ -232,7 +232,6 @@ var model = loader.load('resources/models/Stormtrooper_D.dae', function(collada)
         // update all joints based on tracking data
         // for (let i = 0; i < joints.length; i++) {
         for (let i of activeJointIndices) {
-          if (joints[i] == null) continue; // debug
           const jointName = joints[i].name;
           const poseLandmark = trackedPose[jointNamesToPoseProperties[jointName]];
           if (poseLandmark == null) continue;
