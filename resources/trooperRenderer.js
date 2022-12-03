@@ -10,6 +10,12 @@ document.getElementById('renderer-container').appendChild(renderer.domElement);
 // instantiate collada loader
 var loader = new THREE.ColladaLoader();
 
+// tracking scales
+const HORIZONTAL_TRACKING_SCALE = 5;
+const VERTICAL_TRACKING_SCALE = 5;
+const DEPTH_TRACKING_SCALE = 5;
+
+
 // Loading Skybox images
 // These textures are licensed under a Creative Commons Attribution 3.0 Unported License.
 // That can be found here: https://www.humus.name/index.php?page=Textures
@@ -31,39 +37,39 @@ var material = new THREE.MeshBasicMaterial({map: texture});
 
 // set up reference vectors for each part of the stormtrooper body
 var jointNamesToPoseProperties = {
-  'Chest': 'body',
-  'Neck': 'neck',
-  'Head': 'head',
-  'Upper_Arm_L': 'leftBicep',
-  'Lower_Arm_L': 'leftForearm',
-  'Hand_L': 'leftHand',
-  'Upper_Arm_R': 'rightBicep',
-  'Lower_Arm_R': 'rightForearm',
-  'Hand_R': 'rightHand',
-  'Upper_Leg_L': 'leftThigh',
-  'Lower_Leg_L': 'leftCalf',
-  'Foot_L': 'leftFoot',
-  'Upper_Leg_R': 'rightThigh',
-  'Lower_Leg_R': 'rightCalf',
-  'Foot_R': 'rightFoot'
+  'mixamorig_Spine': 'torso',
+  'mixamorig_Neck': 'neck',
+  'mixamorig_Head': 'head',
+  'mixamorig_LeftShoulder': 'leftBicep',
+  'miamorig_LeftForeArm': 'leftForearm',
+  'mixamorig_LeftHand': 'leftHand',
+  'mixamorig_RightShoulder': 'rightBicep',
+  'mixamorig_RightForeArm': 'rightForearm',
+  'mixamorig_RightHand': 'rightHand',
+  'mixamorig_LeftUpLeg': 'leftThigh',
+  'mixamorig_LeftLeg': 'leftCalf',
+  'mixamorig_LeftFoot': 'leftFoot',
+  'mixamorig_RightUpLeg': 'rightThigh',
+  'mixamorig_RightLeg': 'rightCalf',
+  'mixamorig_RightFoot': 'rightFoot'
 };
 
 const jointNamesToReferenceVectors = {
-  'Chest': [0, -1, 0],
-  'Neck': null,
-  'Head': null,
-  'Upper_Arm_L': [0, -1, 0],
-  'Lower_Arm_L': null,
-  'Hand_L': null,
-  'Upper_Arm_R': [0, -1, 0],
-  'Lower_Arm_R': null,
-  'Hand_R': null,
-  'Upper_Leg_L': [0, -1, 0],
-  'Lower_Leg_L': null,
-  'Foot_L': null,
-  'Upper_Leg_R': [0, -1, 0],
-  'Lower_Leg_R': null,
-  'Foot_R': null
+  'mixamorig_Spine': [0, -1, 0],
+  'mixamorig_Neck': [0, -1, 0],
+  'mixamorig_Head': null,
+  'mixamorig_LeftShoulder': [0, -1, 0],
+  'miamorig_LeftForeArm': null,
+  'mixamorig_LeftHand': null,
+  'mixamorig_RightShoulder': [0, -1, 0],
+  'mixamorig_RightForeArm': null,
+  'mixamorig_RightHand': null,
+  'mixamorig_LeftUpLeg': [0, -1, 0],
+  'mixamorig_LeftLeg': null,
+  'mixamorig_LeftFoot': null,
+  'mixamorig_RightUpLeg': [0, -1, 0],
+  'mixamorig_RightLeg': null,
+  'mixamorig_RightFoot': null
 };
 
 const TRACKING_SCALE = 8;
@@ -145,62 +151,29 @@ var model = loader.load('resources/models/Stormtrooper_D.dae', function(collada)
     renderer.render(scene, camera);
 
     const armature = scene.children[0].children[0]; // node, not joint
-    console.log(armature);
-    console.log("TEST_________________");
 
     // get joint's from scene tree
     const torso = armature.children[0]; // hips
     const chest = torso.children[0]; //spine
-    console.log(chest);
 
     const neck = chest.children[0].children[0].children[0]; //spine1, spine2, neck 
     const head = neck.children[0]; // Head
-    console(Head);
 
     const upperLeftArm = chest.children[0].children[0].children[1]; //LeftShoulder
     const lowerLeftArm = upperLeftArm.children[0].children[0]; //Leftarm, Left Forearm
     const leftHand = lowerLeftArm.children[0]; //Left Hand
-    console(leftHadn);
 
     const upperRightArm = chest.children[0].children[0].children[2]; //RightShoulder
     const lowerRightArm = upperRightArm.children[0].children[0]; //Rightarm, Right Forearm
     const rightHand = lowerRightArm.children[0]; //Right Hand
-    console(rightHand);
 
-    const upperLeftLeg = torso.children[1]; //LeftUpLeg
+    const upperLeftLeg = chest.children[0].children[0].children[1]; //LeftUpLeg
     const lowerLeftLeg = upperLeftLeg.children[0]; //LeftLeg
     const leftFoot = lowerLeftLeg.children[0]; //LeftFoot
-    console(leftFoot);
 
-    const upperRightLeg = torso.children[2]; //RightUpLeg
+    const upperRightLeg = chest.children[0].children[0].children[2]; //RightUpLeg
     const lowerRightLeg = upperRightLeg.children[0]; //RightLeg
     const rightFoot = lowerRightLeg.children[0]; //RightFoot
-    console(rightFoot);
-
-
-    // get joint's from scene tree guh
-    /**
-    const torso = armature.children[0];
-    const chest = torso.children[0];
-
-    const neck = chest.children[0];  
-    const head = neck.children[0];
-
-    const upperLeftArm = chest.children[1];
-    const lowerLeftArm = upperLeftArm.children[0];
-    const leftHand = lowerLeftArm.children[0];
-
-    const upperRightArm = chest.children[2];
-    const lowerRightArm = upperRightArm.children[0];
-    const rightHand = lowerRightArm.children[0];
-
-    const upperLeftLeg = torso.children[1];
-    const lowerLeftLeg = upperLeftLeg.children[0];
-    const leftFoot = lowerLeftLeg.children[0];
-
-    const upperRightLeg = torso.children[2];
-    const lowerRightLeg = upperRightLeg.children[0];
-    const rightFoot = lowerRightLeg.children[0];**/
 
     // create array of joints to iterate over while animating
     const joints = [
@@ -223,6 +196,95 @@ var model = loader.load('resources/models/Stormtrooper_D.dae', function(collada)
     ];
 
     let activeJointIndices = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+
+    /**
+    initialStates = {};
+    for (let joint of joints) {
+      let parent = joint.parent;
+      initialStates[joint.id] = [joint.position.clone(), joint.quaternion.clone(), joint.scale.clone()];
+    }
+
+    function getJointVec(joint) {
+      //let parent = joint.parent;
+      //scene.attach(joint);
+      //let vec = eulerToVec(joint.rotation);
+      //let worldRotation = initialStates[joint.id].clone();
+      let worldRotation = joint.quaternion.clone();
+      let refVec = new THREE.Vector3(0, 1, 0);
+      refVec.applyQuaternion(worldRotation);
+      //parent.attach(joint);
+      return refVec;
+    }
+  
+    function setWorldJointState(joint, position, rotVec) {
+      let parent = joint.parent;
+      scene.attach(joint);
+      //joint.quaternion.setFromUnitVectors((new THREE.Vector3(rotation[0], -rotation[1], -rotation[2])).normalize(), (new THREE.Vector3(0, 1, 0)).normalize());
+      let updateQuat = new THREE.Quaternion();
+      //let sourceQuat = initialStates[joint.id].clone();
+      let sourceQuat = joint.quaternion.clone();
+      //if (['Lower_Arm_L', 'Lower_Arm_R'].includes(joint.name)) {
+        updateQuat.setFromUnitVectors(getJointVec(joint), new THREE.Vector3(rotVec[0], -rotVec[1], -rotVec[2]));
+        //updateQuat.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(rotVec[0], -rotVec[1], -rotVec[2]));
+        //updateQuat.setFromUnitVectors(getJointVec(joint), new THREE.Vector3(0, 1, 0));
+        updateQuat.multiply(sourceQuat);
+        joint.quaternion.copy(updateQuat);
+        joint.position.set(position[0] * HORIZONTAL_TRACKING_SCALE, -position[1] * VERTICAL_TRACKING_SCALE, -position[2] * DEPTH_TRACKING_SCALE);
+      //}
+      parent.attach(joint);
+    }
+
+    // animate
+    function animate() {
+      requestAnimationFrame(animate);
+  
+      // animate camera orientation as user
+      // presses arrow keys
+      updateCameraOrientation();
+  
+      if (trackedPose) {
+        let refPoint = trackedPose.feetMidpoint;
+  
+        // reset joint states
+        for (let joint of joints) {
+          let parent = joint.parent;
+          joint.position.copy(initialStates[joint.id][0]);
+          joint.quaternion.copy(initialStates[joint.id][1]);
+          joint.scale.copy(initialStates[joint.id][2]);
+          //joint.matrix.copy(initialMatrices[joint.id]);
+          //joint.updateMatrix();
+        }
+  
+        //console.log("AAAAAA");
+        //console.log(joints[6].matrix);
+        //console.log(getJointVec(joints[6]));
+        //console.log(getJointVec(joints[9]));
+        //console.log(trackedPose['leftHand'].rot);
+  
+        for (let joint of joints) {
+          const jointName = joint.name;
+          const poseLandmark = trackedPose[jointNamesToPoseProperties[jointName]];
+          if (poseLandmark == null) {
+            continue;
+          }
+  
+          //let refVec = jointNamesToReferenceVectors[jointName];
+  
+          let vec = poseLandmark.rot;
+          let pos = [...poseLandmark.pos];
+  
+          pos[0] -= refPoint[0];
+          pos[1] -= refPoint[1];
+          pos[2] -= refPoint[2];
+  
+          setWorldJointState(joint, pos, vec);
+        }
+  
+        torso.rotation.x -= 0.3;
+      }
+  
+      renderer.render(scene, camera);
+    };**/
 
     // animate
     function animate() {
