@@ -146,6 +146,7 @@ var model = loader.load('resources/models/Stormtrooper_D.dae', function(collada)
 
     const armature = scene.children[0].children[0]; // node, not joint
     console.log(armature);
+    console.log("TEST_________________");
 
     // get joint's from scene tree
     const torso = armature.children[0]; // hips
@@ -154,22 +155,27 @@ var model = loader.load('resources/models/Stormtrooper_D.dae', function(collada)
 
     const neck = chest.children[0].children[0].children[0]; //spine1, spine2, neck 
     const head = neck.children[0]; // Head
+    console(Head);
 
     const upperLeftArm = chest.children[0].children[0].children[1]; //LeftShoulder
     const lowerLeftArm = upperLeftArm.children[0].children[0]; //Leftarm, Left Forearm
     const leftHand = lowerLeftArm.children[0]; //Left Hand
+    console(leftHadn);
 
     const upperRightArm = chest.children[0].children[0].children[2]; //RightShoulder
     const lowerRightArm = upperRightArm.children[0].children[0]; //Rightarm, Right Forearm
     const rightHand = lowerRightArm.children[0]; //Right Hand
+    console(rightHand);
 
-    const upperLeftLeg = chest.children[0].children[0].children[1]; //LeftUpLeg
+    const upperLeftLeg = torso.children[1]; //LeftUpLeg
     const lowerLeftLeg = upperLeftLeg.children[0]; //LeftLeg
     const leftFoot = lowerLeftLeg.children[0]; //LeftFoot
+    console(leftFoot);
 
-    const upperRightLeg = chest.children[0].children[0].children[2]; //RightUpLeg
+    const upperRightLeg = torso.children[2]; //RightUpLeg
     const lowerRightLeg = upperRightLeg.children[0]; //RightLeg
     const rightFoot = lowerRightLeg.children[0]; //RightFoot
+    console(rightFoot);
 
 
     // get joint's from scene tree guh
