@@ -29,29 +29,30 @@ scene.background = cubeTexture;
 
 // this 3D model is free to use under the Unlicense license
 // which can be found here: https://github.com/TheThinMatrix/OpenGL-Animation/blob/master/LICENSE
-var texture = textureLoader.load("resources/models/cowboyTexture.png");
+var texture = textureLoader.load("resources/models/character Texture.png");
 var material = new THREE.MeshBasicMaterial({map: texture});
 
-const HORIZONTAL_TRACKING_SCALE = 3;
-const VERTICAL_TRACKING_SCALE = 2;
-const DEPTH_TRACKING_SCALE = 3;
+const HORIZONTAL_TRACKING_SCALE = 5;
+const VERTICAL_TRACKING_SCALE = 5;
+const DEPTH_TRACKING_SCALE = 5;
 
 // maps the model's joint names to tracking data names
 const jointNamesToPoseProperties = {
-  'Chest': 'body',
+  'Torso': 'torso',
+  'Chest': 'chest',
   'Neck': 'neck',
   'Head': 'head',
-  'Upper_Arm_L': 'leftBicep',
-  'Lower_Arm_L': 'leftForearm',
+  'Upper_Arm_L': 'leftShoulder',
+  'Lower_Arm_L': 'leftElbow',
   'Hand_L': 'leftHand',
-  'Upper_Arm_R': 'rightBicep',
-  'Lower_Arm_R': 'rightForearm',
+  'Upper_Arm_R': 'rightShoulder',
+  'Lower_Arm_R': 'rightElbow',
   'Hand_R': 'rightHand',
-  'Upper_Leg_L': 'leftThigh',
-  'Lower_Leg_L': 'leftCalf',
+  'Upper_Leg_L': 'leftHip',
+  'Lower_Leg_L': 'leftKnee',
   'Foot_L': 'leftFoot',
-  'Upper_Leg_R': 'rightThigh',
-  'Lower_Leg_R': 'rightCalf',
+  'Upper_Leg_R': 'rightHip',
+  'Lower_Leg_R': 'rightKnee',
   'Foot_R': 'rightFoot'
 };
 
@@ -105,7 +106,7 @@ function setInitialCameraOrientation() {
   camera.lookAt(0, cameraYOffset, 0);
 }
 
-// animates camera rotation and position when the 
+// animates camera rotation and position when the
 // user presses the arrow keys
 function updateCameraOrientation() {
   if (panningDirection == '') {
@@ -141,17 +142,17 @@ var model = loader.load('resources/models/cowboyModel.dae', function(collada) {
 
   // position and orient camera
   setInitialCameraOrientation();
-  
+
   // render the model
   renderer.render(scene, camera);
 
-  const armature = scene.children[2].children[1]; // node, not joint
+  const armature = scene.children[0].children[1]; // node, not joint
 
   // get joint's from scene tree
   const torso = armature.children[0];
   const chest = torso.children[0];
 
-  const neck = chest.children[0];  
+  const neck = chest.children[0];
   const head = neck.children[0];
 
   const upperLeftArm = chest.children[1];
@@ -190,7 +191,45 @@ var model = loader.load('resources/models/cowboyModel.dae', function(collada) {
     rightFoot
   ];
 
-  let activeJointIndices = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+  initialStates = {};
+  for (let joint of joints) {
+    let parent = joint.parent;
+    initialStates[joint.id] = [joint.position.clone(), joint.quaternion.clone(), joint.scale.clone()];
+  }
+
+  function eulerToVec(rotation) {
+    return new THREE.Vector3(Math.cos(rotation.x) * Math.sin(rotation.y), Math.cos(rotation.y) * Math.sin(rotation.x), Math.sin(rotation.z)).normalize();
+  }
+
+  function getJointVec(joint) {
+    //let parent = joint.parent;
+    //scene.attach(joint);
+    //let vec = eulerToVec(joint.rotation);
+    //let worldRotation = initialStates[joint.id].clone();
+    let worldRotation = joint.quaternion.clone();
+    let refVec = new THREE.Vector3(0, 1, 0);
+    refVec.applyQuaternion(worldRotation);
+    //parent.attach(joint);
+    return refVec;
+  }
+
+  function setWorldJointState(joint, position, rotVec) {
+    let parent = joint.parent;
+    scene.attach(joint);
+    //joint.quaternion.setFromUnitVectors((new THREE.Vector3(rotation[0], -rotation[1], -rotation[2])).normalize(), (new THREE.Vector3(0, 1, 0)).normalize());
+    let updateQuat = new THREE.Quaternion();
+    //let sourceQuat = initialStates[joint.id].clone();
+    let sourceQuat = joint.quaternion.clone();
+    //if (['Lower_Arm_L', 'Lower_Arm_R'].includes(joint.name)) {
+      updateQuat.setFromUnitVectors(getJointVec(joint), new THREE.Vector3(rotVec[0], -rotVec[1], -rotVec[2]));
+      //updateQuat.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(rotVec[0], -rotVec[1], -rotVec[2]));
+      //updateQuat.setFromUnitVectors(getJointVec(joint), new THREE.Vector3(0, 1, 0));
+      updateQuat.multiply(sourceQuat);
+      joint.quaternion.copy(updateQuat);
+      joint.position.set(position[0] * HORIZONTAL_TRACKING_SCALE, -position[1] * VERTICAL_TRACKING_SCALE, -position[2] * DEPTH_TRACKING_SCALE);
+    //}
+    parent.attach(joint);
+  }
 
   // animate
   function animate() {
@@ -203,14 +242,30 @@ var model = loader.load('resources/models/cowboyModel.dae', function(collada) {
     if (trackedPose) {
       let refPoint = trackedPose.feetMidpoint;
 
-      // update all joints based on tracking data
-      // for (let i = 0; i < joints.length; i++) {
-      for (let i of activeJointIndices) {
-        const jointName = joints[i].name;
-        const poseLandmark = trackedPose[jointNamesToPoseProperties[jointName]];
-        if (poseLandmark == null) continue;
+      // reset joint states
+      for (let joint of joints) {
+        let parent = joint.parent;
+        joint.position.copy(initialStates[joint.id][0]);
+        joint.quaternion.copy(initialStates[joint.id][1]);
+        joint.scale.copy(initialStates[joint.id][2]);
+        //joint.matrix.copy(initialMatrices[joint.id]);
+        //joint.updateMatrix();
+      }
 
-        let refVec = jointNamesToReferenceVectors[jointName];
+      //console.log("AAAAAA");
+      //console.log(joints[6].matrix);
+      //console.log(getJointVec(joints[6]));
+      //console.log(getJointVec(joints[9]));
+      //console.log(trackedPose['leftHand'].rot);
+
+      for (let joint of joints) {
+        const jointName = joint.name;
+        const poseLandmark = trackedPose[jointNamesToPoseProperties[jointName]];
+        if (poseLandmark == null) {
+          continue;
+        }
+
+        //let refVec = jointNamesToReferenceVectors[jointName];
 
         let vec = poseLandmark.rot;
         let pos = [...poseLandmark.pos];
@@ -219,15 +274,10 @@ var model = loader.load('resources/models/cowboyModel.dae', function(collada) {
         pos[1] -= refPoint[1];
         pos[2] -= refPoint[2];
 
-        if (refVec != null) {
-          joints[i].quaternion.setFromUnitVectors((new THREE.Vector3(refVec[0], refVec[1], refVec[2])).normalize(), (new THREE.Vector3(-vec[0], vec[1], vec[2])).normalize());
-          joints[i].position.set(pos[0] * HORIZONTAL_TRACKING_SCALE, -pos[1] * VERTICAL_TRACKING_SCALE, pos[2] * DEPTH_TRACKING_SCALE);
-        } else {
-          let rotationAxis = new THREE.Vector3(vec.axis[0], vec.axis[1], vec.axis[2]);
-          rotationAxis.transformDirection(new THREE.Matrix4().makeRotationX(Math.PI / 2));
-          joints[i].quaternion.setFromAxisAngle(rotationAxis, vec.angle);
-        }
+        setWorldJointState(joint, pos, vec);
       }
+
+      torso.rotation.x -= 0.3;
     }
 
     renderer.render(scene, camera);
