@@ -127,8 +127,8 @@ function updateCameraOrientation() {
 // load stormtrooper into the world, along with animation based on tracking data
 var model = loader.load('resources/models/Stormtrooper_D.dae', function(collada) {
     // debug collada file
-    console.log(collada.scene);
-    console.log(collada.scene.children[0]);
+    //console.log(collada.scene);
+    //console.log(collada.scene.children[0]);
 
     // apply texture
     collada.scene.traverse(function(node) {
@@ -144,9 +144,36 @@ var model = loader.load('resources/models/Stormtrooper_D.dae', function(collada)
     // render the model
     renderer.render(scene, camera);
 
-    const armature = scene.children[2].children[1]; // node, not joint
+    const armature = scene.children[0].children[0]; // node, not joint
+    console.log(armature);
 
     // get joint's from scene tree
+    const torso = armature.children[0] // hips
+    const chest = torso.children[0];
+    console.log(chest);
+
+    const neck = null;
+    const head = null;
+
+    const upperLeftArm = null;
+    const lowerLeftArm = null;
+    const leftHand = null;
+
+    const upperRightArm = null;
+    const lowerRightArm = null;
+    const rightHand = null;
+
+    const upperLeftLeg = null;
+    const lowerLeftLeg = null;
+    const leftFoot = null;
+
+    const upperRightLeg = null;
+    const lowerRightLeg = null;
+    const rightFoot = null;
+
+
+    // get joint's from scene tree
+    /**
     const torso = armature.children[0];
     const chest = torso.children[0];
 
@@ -167,7 +194,7 @@ var model = loader.load('resources/models/Stormtrooper_D.dae', function(collada)
 
     const upperRightLeg = torso.children[2];
     const lowerRightLeg = upperRightLeg.children[0];
-    const rightFoot = lowerRightLeg.children[0];
+    const rightFoot = lowerRightLeg.children[0];**/
 
     // create array of joints to iterate over while animating
     const joints = [
@@ -205,6 +232,7 @@ var model = loader.load('resources/models/Stormtrooper_D.dae', function(collada)
         // update all joints based on tracking data
         // for (let i = 0; i < joints.length; i++) {
         for (let i of activeJointIndices) {
+          if (joints[i] == null) continue; // debug
           const jointName = joints[i].name;
           const poseLandmark = trackedPose[jointNamesToPoseProperties[jointName]];
           if (poseLandmark == null) continue;
@@ -234,119 +262,3 @@ var model = loader.load('resources/models/Stormtrooper_D.dae', function(collada)
     
     animate();
 });
-
-/**
-var raymanPartMap = ['hair', 'leftFoot', 'body', 'rightHand', 'leftHand', 'rightFoot', 'eyes', 'head'];
-var raymanPartVectors = [[0, -1, 0], [0, 1, 0], [0, -1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0], [0, -1, 0], [0, -1, 0]];
-
-const TRACKING_SCALE = 8;
-
-// camera orientation constants
-const cameraDistanceToCenter = 15;
-const cameraYOffset = 5;
-const cameraRotationTheta = 0.1; // radians
-
-// variables for camera rotation
-let cameraVerticalAngle = 0;
-let cameraHorizontalAngle = Math.PI / 2;
-let panningDirection = '';
-
-// set up arrow key event handlers
-document.body.onkeydown = function(event) {
-  if (event.keyCode == '38') {
-    panningDirection = 'up';
-  } else if (event.keyCode == '40') {
-    panningDirection = 'down';
-  } else if (event.keyCode == '37') {
-    panningDirection = 'left';
-  } else if (event.keyCode == '39') {
-    panningDirection = 'right';
-  }
-};
-
-document.body.onkeyup = function(event) {
-  panningDirection = '';
-};
-
-function setInitialCameraOrientation() {
-  camera.position.set(0, cameraYOffset, cameraDistanceToCenter);
-  camera.lookAt(0, cameraYOffset, 0);
-}
-
-// animates camera rotation and position when the 
-// user presses the arrow keys
-function updateCameraOrientation() {
-  if (panningDirection == '') {
-    return;
-  }
-
-  if (panningDirection == 'up') {
-    cameraVerticalAngle = Math.min(Math.PI / 2, cameraVerticalAngle + cameraRotationTheta);
-  } else if (panningDirection == 'down') {
-    cameraVerticalAngle = Math.max(-(Math.PI / 2), cameraVerticalAngle - cameraRotationTheta);
-  } else if (panningDirection == 'left') {
-    cameraHorizontalAngle = Math.min(1.5 * Math.PI, cameraHorizontalAngle + cameraRotationTheta);
-  } else if (panningDirection == 'right') {
-    cameraHorizontalAngle = Math.max(-(Math.PI / 2), cameraHorizontalAngle - cameraRotationTheta);
-  }
-
-  camera.position.x = cameraDistanceToCenter * Math.cos(cameraHorizontalAngle) * Math.cos(cameraVerticalAngle);
-  camera.position.z = cameraDistanceToCenter * Math.sin(cameraHorizontalAngle) * Math.cos(cameraVerticalAngle);
-  camera.position.y = cameraDistanceToCenter * Math.sin(cameraVerticalAngle) + cameraYOffset;
-
-  camera.lookAt(0, cameraYOffset, 0);
-}
-
-// load rayman
-var model = loader.load('resources/models/raymanModel.dae', function(collada) {
-  // apply texture
-  collada.scene.traverse(function(node) {
-  if (node.isMesh) node.material = material;
-  });
-
-  // add model to scene
-  scene.add(collada.scene);
-
-  // add light to scene
-  scene.add(light);
-
-  // position and orient camera
-  setInitialCameraOrientation();
-
-  // render the model
-  renderer.render(scene, camera);
-
-  raymanMesh = scene.children[0];
-  for (let i = 0; i < raymanMesh.children.length; i++) {
-    raymanMesh.children[i].geometry.center();
-    raymanMesh.children[i].position.x = (i - raymanMesh.children.length / 2) * 4;
-  }
-
-  // animate
-  function animate() {
-    requestAnimationFrame( animate );
-
-    updateCameraOrientation();
-
-    if (trackedPose) {
-      let refPoint = trackedPose.feetMidpoint;
-
-      for (let i = 0; i < raymanMesh.children.length; i++) {
-        if (!raymanPartMap[i]) continue;
-        let vec = trackedPose[raymanPartMap[i]].rot;
-        let refVec = raymanPartVectors[i];
-        let pos = [...trackedPose[raymanPartMap[i]].pos];
-        pos[0] -= refPoint[0];
-        pos[1] -= refPoint[1];
-        pos[2] -= refPoint[2];
-        
-        raymanMesh.children[i].quaternion.setFromUnitVectors(new THREE.Vector3(refVec[0], refVec[1], refVec[2]), new THREE.Vector3(-vec[0], vec[1], -vec[2]));
-        raymanMesh.children[i].position.set(pos[0] * TRACKING_SCALE, -pos[1] * TRACKING_SCALE, -pos[2] * TRACKING_SCALE);
-      }
-    }
-
-    renderer.render(scene, camera);
-  };
-
-  animate();
-});**/
