@@ -163,11 +163,11 @@ var model = loader.load('resources/models/Stormtrooper_D.dae', function(collada)
     const lowerRightArm = upperRightArm.children[0].children[0]; //Rightarm, Right Forearm
     const rightHand = lowerRightArm.children[0]; //Right Hand
 
-    const upperLeftLeg = chest.children[1]; //LeftUpLeg
+    const upperLeftLeg = chest.children[0].children[0].children[1]; //LeftUpLeg
     const lowerLeftLeg = upperLeftLeg.children[0]; //LeftLeg
     const leftFoot = lowerLeftLeg.children[0]; //LeftFoot
 
-    const upperRightLeg = chest.children[2]; //RightUpLeg
+    const upperRightLeg = chest.children[0].children[0].children[2]; //RightUpLeg
     const lowerRightLeg = upperRightLeg.children[0]; //RightLeg
     const rightFoot = lowerRightLeg.children[0]; //RightFoot
 
