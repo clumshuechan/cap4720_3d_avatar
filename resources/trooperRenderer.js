@@ -172,7 +172,7 @@ var model = loader.load('resources/models/Stormtrooper_D.dae', function(collada)
     const rightFoot = lowerRightLeg.children[0]; //RightFoot
 
 
-    // get joint's from scene tree
+    // get joint's from scene tree guh
     /**
     const torso = armature.children[0];
     const chest = torso.children[0];
