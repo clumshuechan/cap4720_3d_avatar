@@ -4,6 +4,8 @@ const canvasCtx = canvasElement.getContext('2d');
 const landmarkContainer = document.getElementsByClassName('landmark-grid-container')[0];
 const grid = new LandmarkGrid(landmarkContainer);
 
+var trackingLog = [];
+
 function vectorMagnitude(v) {
   return Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 }
@@ -45,7 +47,6 @@ function averagePoints(p1, p2) {
 function absoluteRotation(src, end) {
   up = [0, 1, 0];
   vec = calcVector(src, end);
-  //return vectorRotation(up, vec); // may be backwards
   return normalizeVector(vec);
 }
 
@@ -57,10 +58,6 @@ function onResults(results) {
 
   canvasCtx.save();
   canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-  /*
-  canvasCtx.drawImage(results.segmentationMask, 0, 0,
-                      canvasElement.width, canvasElement.height);
-  */
 
   // Only overwrite existing pixels.
   canvasCtx.globalCompositeOperation = 'source-in';
@@ -140,10 +137,10 @@ function onResults(results) {
   };
   let head = {
     'pos': headPoint,
-    'rot': neck['rot'] //absoluteRotation(landmarkToPoint(results.poseWorldLandmarks[0]), headPoint),
+    'rot': neck['rot']
   };
 
-  trackedPose = {
+  newPose = {
     rightHand: rightHand,
     leftHand: leftHand,
     rightFoot: rightFoot,
@@ -160,10 +157,46 @@ function onResults(results) {
     torso: torso,
     neck: neck,
     chest: chest,
-    feetMidpoint: averagePoints(landmarkToPoint(results.poseWorldLandmarks[27]), landmarkToPoint(results.poseWorldLandmarks[28]))
   }
 
-  trackedPose['feetMidpoint'][1] = Math.max(results.poseWorldLandmarks[27].y, results.poseWorldLandmarks[28].y);
+  trackingLog.push(newPose);
+  if (trackingLog.length > 4) {
+    trackingLog.splice(0, 1);
+  }
+
+  // set initial values for average sum
+  trackedPoseAvg = {}
+  for (let key of Object.keys(trackingLog[0])) {
+    trackedPoseAvg[key] = {'pos': [...trackingLog[0][key]['pos']], 'rot': [...trackingLog[0][key]['rot']]};
+  }
+
+  // sum up values
+  for (let i = 1; i < trackingLog.length; i++) {
+    for (let key of Object.keys(trackingLog[i])) {
+      for (let j = 0; j < trackingLog[i][key]['pos'].length; j++) {
+        trackedPoseAvg[key]['pos'][j] += trackingLog[i][key]['pos'][j];
+      }
+      for (let j = 0; j < trackingLog[i][key]['rot'].length; j++) {
+        trackedPoseAvg[key]['rot'][j] += trackingLog[i][key]['rot'][j];
+      }
+    }
+  }
+
+  // divide to get average
+  for (let key of Object.keys(trackedPoseAvg)) {
+    for (let j = 0; j < trackedPoseAvg[key]['pos'].length; j++) {
+      trackedPoseAvg[key]['pos'][j] /= trackingLog.length;
+    }
+    for (let j = 0; j < trackedPoseAvg[key]['rot'].length; j++) {
+      trackedPoseAvg[key]['rot'][j] /= trackingLog.length;
+    }
+  }
+
+  trackedPoseAvg['feetMidpoint'] = averagePoints(trackedPoseAvg['leftFoot'].pos, trackedPoseAvg['rightFoot'].pos);
+  trackedPoseAvg['feetMidpoint'][1] = Math.max(trackedPoseAvg['leftFoot'].pos[1], trackedPoseAvg['rightFoot'].pos[1]);
+
+  // set average as tracked pose
+  trackedPose = trackedPoseAvg;
 
   //document.getElementById('debug_info').innerHTML = JSON.stringify(trackedPose);
 

@@ -202,32 +202,21 @@ var model = loader.load('resources/models/cowboyModel.dae', function(collada) {
   }
 
   function getJointVec(joint) {
-    //let parent = joint.parent;
-    //scene.attach(joint);
-    //let vec = eulerToVec(joint.rotation);
-    //let worldRotation = initialStates[joint.id].clone();
     let worldRotation = joint.quaternion.clone();
     let refVec = new THREE.Vector3(0, 1, 0);
     refVec.applyQuaternion(worldRotation);
-    //parent.attach(joint);
     return refVec;
   }
 
   function setWorldJointState(joint, position, rotVec) {
     let parent = joint.parent;
     scene.attach(joint);
-    //joint.quaternion.setFromUnitVectors((new THREE.Vector3(rotation[0], -rotation[1], -rotation[2])).normalize(), (new THREE.Vector3(0, 1, 0)).normalize());
     let updateQuat = new THREE.Quaternion();
-    //let sourceQuat = initialStates[joint.id].clone();
     let sourceQuat = joint.quaternion.clone();
-    //if (['Lower_Arm_L', 'Lower_Arm_R'].includes(joint.name)) {
-      updateQuat.setFromUnitVectors(getJointVec(joint), new THREE.Vector3(rotVec[0], -rotVec[1], -rotVec[2]));
-      //updateQuat.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(rotVec[0], -rotVec[1], -rotVec[2]));
-      //updateQuat.setFromUnitVectors(getJointVec(joint), new THREE.Vector3(0, 1, 0));
-      updateQuat.multiply(sourceQuat);
-      joint.quaternion.copy(updateQuat);
-      joint.position.set(position[0] * HORIZONTAL_TRACKING_SCALE, -position[1] * VERTICAL_TRACKING_SCALE, -position[2] * DEPTH_TRACKING_SCALE);
-    //}
+    updateQuat.setFromUnitVectors(getJointVec(joint), new THREE.Vector3(rotVec[0], -rotVec[1], -rotVec[2]));
+    updateQuat.multiply(sourceQuat);
+    joint.quaternion.copy(updateQuat);
+    joint.position.set(position[0] * HORIZONTAL_TRACKING_SCALE, -position[1] * VERTICAL_TRACKING_SCALE, -position[2] * DEPTH_TRACKING_SCALE);
     parent.attach(joint);
   }
 
@@ -248,15 +237,7 @@ var model = loader.load('resources/models/cowboyModel.dae', function(collada) {
         joint.position.copy(initialStates[joint.id][0]);
         joint.quaternion.copy(initialStates[joint.id][1]);
         joint.scale.copy(initialStates[joint.id][2]);
-        //joint.matrix.copy(initialMatrices[joint.id]);
-        //joint.updateMatrix();
       }
-
-      //console.log("AAAAAA");
-      //console.log(joints[6].matrix);
-      //console.log(getJointVec(joints[6]));
-      //console.log(getJointVec(joints[9]));
-      //console.log(trackedPose['leftHand'].rot);
 
       for (let joint of joints) {
         const jointName = joint.name;
@@ -264,8 +245,6 @@ var model = loader.load('resources/models/cowboyModel.dae', function(collada) {
         if (poseLandmark == null) {
           continue;
         }
-
-        //let refVec = jointNamesToReferenceVectors[jointName];
 
         let vec = poseLandmark.rot;
         let pos = [...poseLandmark.pos];
