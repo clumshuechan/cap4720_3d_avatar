@@ -11,10 +11,9 @@ document.getElementById('renderer-container').appendChild(renderer.domElement);
 var loader = new THREE.ColladaLoader();
 
 // tracking scales
-const HORIZONTAL_TRACKING_SCALE = 5;
+const HORIZONTAL_TRACKING_SCALE = 3;
 const VERTICAL_TRACKING_SCALE = 5;
-const DEPTH_TRACKING_SCALE = 5;
-
+const DEPTH_TRACKING_SCALE = 3;
 
 // Loading Skybox images
 // These textures are licensed under a Creative Commons Attribution 3.0 Unported License.
@@ -55,24 +54,24 @@ var jointNamesToPoseProperties = {
 };
 
 const jointNamesToReferenceVectors = {
-  'mixamorig_Spine': [0, -1, 0],
-  'mixamorig_Neck': [0, -1, 0],
-  'mixamorig_Head': null,
-  'mixamorig_LeftShoulder': [0, -1, 0],
+  'mixamorig_Spine': [0, 1, 0], 
+  'mixamorig_Neck': null, 
+  'mixamorig_Head': null, 
+  'mixamorig_LeftShoulder': [0, 1, 0], 
   'miamorig_LeftForeArm': null,
-  'mixamorig_LeftHand': null,
-  'mixamorig_RightShoulder': [0, -1, 0],
+  'mixamorig_LeftHand': [0, 1, 0],
+  'mixamorig_RightShoulder': [0, 1, 0],
   'mixamorig_RightForeArm': null,
-  'mixamorig_RightHand': null,
-  'mixamorig_LeftUpLeg': [0, -1, 0],
+  'mixamorig_RightHand': [0, 1, 0],
+  'mixamorig_LeftUpLeg': [0, 1, 0],
   'mixamorig_LeftLeg': null,
-  'mixamorig_LeftFoot': null,
-  'mixamorig_RightUpLeg': [0, -1, 0],
+  'mixamorig_LeftFoot': [0, 1, 0],
+  'mixamorig_RightUpLeg': [0, 1, 0],
   'mixamorig_RightLeg': null,
-  'mixamorig_RightFoot': null
+  'mixamorig_RightFoot': [0, 1, 0]
 };
 
-const TRACKING_SCALE = 8;
+const TRACKING_SCALE = 5;
 
 // camera orientation constants
 const cameraDistanceToCenter = 15;
@@ -132,10 +131,6 @@ function updateCameraOrientation() {
 
 // load stormtrooper into the world, along with animation based on tracking data
 var model = loader.load('resources/models/Stormtrooper_D.dae', function(collada) {
-    // debug collada file
-    //console.log(collada.scene);
-    //console.log(collada.scene.children[0]);
-
     // apply texture
     collada.scene.traverse(function(node) {
     if (node.isMesh) node.material = material;
@@ -174,6 +169,7 @@ var model = loader.load('resources/models/Stormtrooper_D.dae', function(collada)
     const upperRightLeg = chest.children[0].children[0].children[2]; //RightUpLeg
     const lowerRightLeg = upperRightLeg.children[0]; //RightLeg
     const rightFoot = lowerRightLeg.children[0]; //RightFoot
+    console.log(rightHand);
 
     // create array of joints to iterate over while animating
     const joints = [
@@ -195,9 +191,8 @@ var model = loader.load('resources/models/Stormtrooper_D.dae', function(collada)
       rightFoot
     ];
 
-    let activeJointIndices = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+    //let activeJointIndices = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 
-    /**
     initialStates = {};
     for (let joint of joints) {
       let parent = joint.parent;
@@ -205,32 +200,21 @@ var model = loader.load('resources/models/Stormtrooper_D.dae', function(collada)
     }
 
     function getJointVec(joint) {
-      //let parent = joint.parent;
-      //scene.attach(joint);
-      //let vec = eulerToVec(joint.rotation);
-      //let worldRotation = initialStates[joint.id].clone();
       let worldRotation = joint.quaternion.clone();
       let refVec = new THREE.Vector3(0, 1, 0);
       refVec.applyQuaternion(worldRotation);
-      //parent.attach(joint);
       return refVec;
     }
   
     function setWorldJointState(joint, position, rotVec) {
       let parent = joint.parent;
       scene.attach(joint);
-      //joint.quaternion.setFromUnitVectors((new THREE.Vector3(rotation[0], -rotation[1], -rotation[2])).normalize(), (new THREE.Vector3(0, 1, 0)).normalize());
       let updateQuat = new THREE.Quaternion();
-      //let sourceQuat = initialStates[joint.id].clone();
       let sourceQuat = joint.quaternion.clone();
-      //if (['Lower_Arm_L', 'Lower_Arm_R'].includes(joint.name)) {
-        updateQuat.setFromUnitVectors(getJointVec(joint), new THREE.Vector3(rotVec[0], -rotVec[1], -rotVec[2]));
-        //updateQuat.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(rotVec[0], -rotVec[1], -rotVec[2]));
-        //updateQuat.setFromUnitVectors(getJointVec(joint), new THREE.Vector3(0, 1, 0));
-        updateQuat.multiply(sourceQuat);
-        joint.quaternion.copy(updateQuat);
-        joint.position.set(position[0] * HORIZONTAL_TRACKING_SCALE, -position[1] * VERTICAL_TRACKING_SCALE, -position[2] * DEPTH_TRACKING_SCALE);
-      //}
+      updateQuat.setFromUnitVectors(getJointVec(joint), new THREE.Vector3(rotVec[0], -rotVec[1], -rotVec[2]));
+      updateQuat.multiply(sourceQuat);
+      joint.quaternion.copy(updateQuat);
+      joint.position.set(position[0] * HORIZONTAL_TRACKING_SCALE, -position[1] * VERTICAL_TRACKING_SCALE, -position[2] * DEPTH_TRACKING_SCALE);
       parent.attach(joint);
     }
 
@@ -251,15 +235,7 @@ var model = loader.load('resources/models/Stormtrooper_D.dae', function(collada)
           joint.position.copy(initialStates[joint.id][0]);
           joint.quaternion.copy(initialStates[joint.id][1]);
           joint.scale.copy(initialStates[joint.id][2]);
-          //joint.matrix.copy(initialMatrices[joint.id]);
-          //joint.updateMatrix();
         }
-  
-        //console.log("AAAAAA");
-        //console.log(joints[6].matrix);
-        //console.log(getJointVec(joints[6]));
-        //console.log(getJointVec(joints[9]));
-        //console.log(trackedPose['leftHand'].rot);
   
         for (let joint of joints) {
           const jointName = joint.name;
@@ -267,8 +243,6 @@ var model = loader.load('resources/models/Stormtrooper_D.dae', function(collada)
           if (poseLandmark == null) {
             continue;
           }
-  
-          //let refVec = jointNamesToReferenceVectors[jointName];
   
           let vec = poseLandmark.rot;
           let pos = [...poseLandmark.pos];
@@ -284,9 +258,10 @@ var model = loader.load('resources/models/Stormtrooper_D.dae', function(collada)
       }
   
       renderer.render(scene, camera);
-    };**/
+    };
 
     // animate
+    /**
     function animate() {
       requestAnimationFrame(animate);
   
@@ -325,7 +300,7 @@ var model = loader.load('resources/models/Stormtrooper_D.dae', function(collada)
       }
   
       renderer.render(scene, camera);
-    };
+    };**/
     
     animate();
 });
